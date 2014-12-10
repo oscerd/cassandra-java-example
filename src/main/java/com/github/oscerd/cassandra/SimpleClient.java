@@ -12,6 +12,9 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Ordering;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 public class SimpleClient {
 	private Cluster cluster;
@@ -64,11 +67,13 @@ public class SimpleClient {
 		tags.add("metal");
 		tags.add("1992");
 		UUID idAlbum = UUID.randomUUID();
-		session.execute(boundStatement.bind(
+		ResultSet res = session.execute(boundStatement.bind(
 				idAlbum,
 				"DNR", "The gathering",
 				"Testament", tags));
-
+		
+		System.err.println(res.toString());
+		
 		statement = session.prepare("INSERT INTO simplex.playlists "
 				+ "(id, song_id, title, album, artist) "
 				+ "VALUES (?, ?, ?, ?, ?);");
@@ -82,7 +87,8 @@ public class SimpleClient {
 	}
 
 	public void querySchema() {
-		ResultSet results = session.execute("SELECT * FROM simplex.songs");
+		Statement statement = QueryBuilder.select().all().from("simplex", "songs");
+		ResultSet results = session.execute(statement);
 		System.out
 				.println(String
 						.format("%-50s\t%-30s\t%-20s\t%-20s\n%s", "id", "title", "album",
